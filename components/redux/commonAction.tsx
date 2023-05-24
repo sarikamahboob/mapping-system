@@ -1,6 +1,6 @@
 import { API } from "@/app.config"
 import axios from "axios"
-import { setZones } from "./commonReducer"
+import { setSearchPlaces, setZones } from "./commonReducer"
 
 // Get Zones
 export function getZones() {
@@ -30,3 +30,15 @@ export function getZones() {
                 })
         }
     }
+
+//Autocomplete API
+export const searchPlaces = (text:string) => async (dispatch:any) => {
+    try {
+      const res = await axios.get(
+        `https://api.bmapsbd.com/search/autocomplete/web?search=${text}`
+      );
+      dispatch(setSearchPlaces(res.data.places))
+    } catch (err) {
+      console.error(err);
+    }
+  };

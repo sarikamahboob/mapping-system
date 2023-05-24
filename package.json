@@ -10,9 +10,11 @@
   },
   "dependencies": {
     "@reduxjs/toolkit": "^1.9.5",
+    "@turf/turf": "^6.5.0",
     "@types/node": "20.2.3",
     "@types/react": "18.2.6",
     "@types/react-dom": "18.2.4",
+    "antd": "^5.5.1",
     "axios": "^1.4.0",
     "deck.gl": "^8.9.15",
     "eslint": "8.41.0",

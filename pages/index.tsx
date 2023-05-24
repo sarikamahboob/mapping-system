@@ -5,6 +5,7 @@ import styles from '@/styles/Home.module.css'
 import DeckGlMap from '@/components/DeckGlMap'
 import { getZones } from '@/components/redux/commonAction'
 import Pmtiles from '@/components/Pmtiles'
+import MainContainer from '@/components/autocomplete/MainContainer'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -17,8 +18,9 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <DeckGlMap/>
+      {/* <DeckGlMap/> */}
       {/* <Pmtiles/>    */}
+      <MainContainer/>
     </>
   )
 }

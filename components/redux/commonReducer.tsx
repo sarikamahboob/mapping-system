@@ -2,6 +2,8 @@ import { createSlice } from '@reduxjs/toolkit'
 
 const initialState = {
     zones: [],
+    search_places: '',
+    geoData: {}
 }
 
 const commonSlice = createSlice({
@@ -11,8 +13,14 @@ const commonSlice = createSlice({
     setZones: (state, action) => {
       state.zones = action.payload
     },
+    setSearchPlaces: (state, action) => {
+      state.search_places = action.payload
+    },
+    setGeoData: (state, action) => {
+      state.geoData = action.payload
+    },
   }
 })
 
-export const { setZones } = commonSlice.actions
+export const { setZones, setSearchPlaces, setGeoData } = commonSlice.actions
 export default commonSlice.reducer

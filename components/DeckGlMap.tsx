@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { IconLayer, GeoJsonLayer, ScatterplotLayer, TextLayer } from '@deck.gl/layers/typed'
 import { MapboxOverlay, MapboxOverlayProps } from '@deck.gl/mapbox/typed'
 import { Map, Popup, FullscreenControl, useControl, Marker  } from 'react-map-gl'
@@ -9,6 +9,7 @@ import { useAppDispatch, useAppSelector } from './redux/store';
 import { getZones } from './redux/commonAction';
 import * as pmtiles from "pmtiles";
 import { Protocol } from 'pmtiles';
+import { bbox } from '@turf/turf';
 
 // let protocol = new pmtiles.Protocol();
 // maplibregl.addProtocol("pmtiles",protocol.tile);
@@ -32,24 +33,17 @@ const data = [
 
 const DeckGlMap = () => {
 
-  useEffect(() => {
-    let protocol = new Protocol();
-    maplibregl.addProtocol("pmtiles",protocol.tile);
-    return () => {
-      maplibregl.removeProtocol("pmtiles");
-    }
-  }, []);
-
    // Redux Data
    const zones: any = useAppSelector( state => state?.common?.zones ?? [])
    const dispatch = useAppDispatch();
   
   // States
   const [ popupInfo, setPopupInfo ]: any = useState(null)
-
   const [showPopup, setShowPopup] = useState(true);
-  
   const [ geoJsonData, setGeoJsonData ] = useState([])
+
+  // Refs
+  const mapRef = useRef(null)
 
   // Get Icon Based On Type
   const _onGetIconUrl = (type: any) => {
@@ -147,6 +141,42 @@ const DeckGlMap = () => {
     })
   ]
 
+  // Fitbounds
+  const _onFitBounds = () => {
+      const map: any = mapRef.current
+
+      if (!geoJsonData || geoJsonData?.length <= 0){
+          return
+      }
+
+      const geoJson: any = {
+          type: 'FeatureCollection',
+          features: []
+      }
+
+      geoJsonData.forEach((d: any) => {
+          geoJson.features.push({
+              type: "Feature",
+              geometry: d?.geometry,
+          })
+      })
+
+      const [ minLng, minLat, maxLng, maxLat ]: any = bbox(geoJson)
+
+      if(map && map !== null){
+          map.fitBounds(
+              [
+                  [ minLng, minLat ],
+                  [ maxLng, maxLat ]
+              ],
+              { 
+                  padding: 100, 
+                  duration: 1000 
+              }
+          )
+      }
+  }
+
   const _onSetGeoJsonData = (data: any) => { 
       setGeoJsonData( getJsonData(data) )
   }
@@ -162,6 +192,7 @@ const DeckGlMap = () => {
 
   useEffect(() => {
       _onSetGeoJsonData(zones)
+      _onFitBounds()
   }, [ zones ])
 
   return (
@@ -173,6 +204,7 @@ const DeckGlMap = () => {
         }}
         style={{width: '100%', height: 700}} 
         mapStyle={ MAP_CONFIG.STYLES[1].uri }
+        ref={mapRef}
         mapLib={maplibregl} >
           {
             data.map((i:any)=>(
