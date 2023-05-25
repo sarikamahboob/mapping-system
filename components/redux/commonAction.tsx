@@ -1,6 +1,8 @@
 import { API } from "@/app.config"
 import axios from "axios"
-import { setSearchPlaces, setZones } from "./commonReducer"
+import { setGeoData, setIsLoading, setSearchPlaces, setZones } from "./commonReducer"
+import { createAsyncThunk } from "@reduxjs/toolkit"
+import { message } from 'antd'
 
 // Get Zones
 export function getZones() {
@@ -31,14 +33,36 @@ export function getZones() {
         }
     }
 
-//Autocomplete API
-export const searchPlaces = (text:string) => async (dispatch:any) => {
+
+export const searchPlaces = createAsyncThunk('search/searchPlaces', async (data: any, { dispatch }) => {
+
+    // Set Is Loading
+    // dispatch( setIsLoading(true) )
     try {
-      const res = await axios.get(
-        `https://api.bmapsbd.com/search/autocomplete/web?search=${text}`
-      );
-      dispatch(setSearchPlaces(res.data.places))
-    } catch (err) {
-      console.error(err);
+        const res = await axios.get(`${ API.AUTOCOMPLETE }${ data }`)
+        dispatch( setSearchPlaces(res.data.places) )
+    } catch(err) {
+        console.error(err)
+        message.error({ content: 'Failed to get data !'})
+
+    } finally {
+        // dispatch( setIsLoading(false) )
     }
-  };
+})
+
+
+export const handleDistance = createAsyncThunk('search/searchPlaces', async (data:any, { dispatch }) => {
+    const {selectLocationFrom, selectLocationTo} = data
+    // Set Is Loading
+    dispatch( setIsLoading(true) )
+    try {
+        const res = await axios.get(`https://geoserver.bmapsbd.com/gh/route?point=${selectLocationFrom.latitude},${selectLocationFrom.longitude}&point=${selectLocationTo.latitude},${selectLocationTo.longitude}&locale=en-us&elevation=false&profile=car&optimize=%22true%22&use_miles=false&layer=Barikoi&points_encoded=false`)
+        dispatch(setGeoData(res?.data))
+    } catch(err) {
+        console.error(err)
+        message.error({ content: 'Failed to get data !'})
+
+    } finally {
+        dispatch( setIsLoading(false) )
+    }
+})

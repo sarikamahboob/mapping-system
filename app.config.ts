@@ -10,6 +10,7 @@ export const SEARCH_URL = process.env.NEXT_PUBLIC_BASE_URL_SEARCH || ''
 // API Routes
 export const API = {
   GET_ZONES: `${ BASE_URL }/api/v1/get-zone`,
+  AUTOCOMPLETE: `https://api.bmapsbd.com/search/autocomplete/web?search=`
 }
 
 // Map Configs

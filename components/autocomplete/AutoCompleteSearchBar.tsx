@@ -1,9 +1,9 @@
 import { AutoComplete, Button, Col, Form, Row, Typography } from 'antd'
 import React, { useEffect, useState } from 'react'
-import { searchPlaces } from '../redux/commonAction';
+import { handleDistance, searchPlaces } from '../redux/commonAction';
 import { useAppDispatch, useAppSelector } from '../redux/store';
 import axios from 'axios';
-import { setGeoData } from '../redux/commonReducer';
+import { setGeoData, setIsLoading } from '../redux/commonReducer';
 
 // Import Constants
  const { Text } = Typography
@@ -11,13 +11,11 @@ import { setGeoData } from '../redux/commonReducer';
 const AutoCompleteSearchBar = ({setSelectLocationFrom, setSelectLocationTo, selectLocationFrom, selectLocationTo }:any) => {
 
   const places:any = useAppSelector(state => state?.common?.search_places ?? [])
-
   const dispatch = useAppDispatch()
-  const [value, setValue] = useState('');
   const [anotherOptionsFrom, setAnotherOptionsFrom]:any = useState('');
   const [anotherOptionsTo, setAnotherOptionsTo]:any = useState('');
-
   const [options, setOptions] = useState([]);
+
   const onChange = async (value:any) => {
     if (value) {
       try {
@@ -40,27 +38,19 @@ const AutoCompleteSearchBar = ({setSelectLocationFrom, setSelectLocationTo, sele
 
   const onSelectFrom = (value:any) => {
     const selectedOption:any = options.find((option:any) => option.value === value);
-    console.log(selectedOption)
-    setSelectLocationFrom(selectedOption);
+    setSelectLocationFrom({...selectedOption, pointType: 'From'});
     setAnotherOptionsFrom(selectedOption?.value)
   };
   const onSelectTo = (value:any) => {
     const selectedOption:any = options.find((option:any) => option.value === value);
-    console.log(selectedOption)
-    setSelectLocationTo(selectedOption);
+    setSelectLocationTo({...selectedOption, pointType: 'To'});
     setAnotherOptionsTo(selectedOption?.value)
   };
 
-  const handleDistance = async (fromValue: any, toValue:any) =>{
-    const url = `https://geoserver.bmapsbd.com/gh/route?point=${fromValue.latitude},${fromValue.longitude}&point=${toValue.latitude},${toValue.longitude}&locale=en-us&elevation=false&profile=car&optimize=%22true%22&use_miles=false&layer=Barikoi&points_encoded=false`
-    try {
-        const res = await axios.get(url);
-        console.log(res)
-        dispatch(setGeoData(res?.data))
-      } catch (err) {
-        console.error(err);
-      }
-    console.log(fromValue, toValue)
+  const loading:any = useAppSelector(state => state?.common?.isLoading ?? '')
+
+  const handleClick = () => {
+    dispatch(handleDistance({selectLocationFrom, selectLocationTo}))
   }
 
 
@@ -93,7 +83,7 @@ const AutoCompleteSearchBar = ({setSelectLocationFrom, setSelectLocationTo, sele
             </Col>
         </Row>
         <div style={{display: 'flex', justifyContent: 'center', marginTop: '30px'}}>
-            <Button type="primary" onClick={()=> handleDistance(selectLocationFrom, selectLocationTo)}> { 'Submit' } </Button>
+            <Button type="primary" loading={loading} onClick={()=> handleClick()}> { 'Submit' } </Button>
         </div>
     </Form>
   )

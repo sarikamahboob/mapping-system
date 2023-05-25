@@ -14,7 +14,7 @@ const MainContainer = () => {
           <AutoCompleteSearchBar selectLocationFrom={selectLocationFrom} selectLocationTo={selectLocationTo} setSelectLocationFrom={setSelectLocationFrom} setSelectLocationTo={setSelectLocationTo}/>
         </Col>
         <Col span='16'>
-          <AutoCompleteMap selectLocationFrom={selectLocationFrom} selectLocationTo={selectLocationTo} />
+          <AutoCompleteMap setSelectLocationFrom={setSelectLocationFrom} setSelectLocationTo={setSelectLocationTo} selectLocationFrom={selectLocationFrom} selectLocationTo={selectLocationTo} />
         </Col>
       </Row>
     </div>
