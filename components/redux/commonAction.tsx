@@ -35,7 +35,6 @@ export function getZones() {
 
 
 export const searchPlaces = createAsyncThunk('search/searchPlaces', async (data: any, { dispatch }) => {
-
     // Set Is Loading
     // dispatch( setIsLoading(true) )
     try {
@@ -61,7 +60,6 @@ export const handleDistance = createAsyncThunk('search/searchPlaces', async (dat
     } catch(err) {
         console.error(err)
         message.error({ content: 'Failed to get data !'})
-
     } finally {
         dispatch( setIsLoading(false) )
     }

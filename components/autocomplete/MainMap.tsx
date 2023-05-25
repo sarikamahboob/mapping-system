@@ -7,7 +7,6 @@ import { MAP_CONFIG } from '@/app.config';
 import * as pmtiles from "pmtiles";
 import { Protocol } from 'pmtiles';
 import { bbox } from '@turf/turf';
-import { useAppDispatch, useAppSelector } from '../redux/store';
 
 // DeckGL Overlay
 const DeckGLOverlay: any = (props: MapboxOverlayProps & { interleaved?: boolean }) => {
@@ -23,6 +22,7 @@ const MainMap = ({geoData, geoJsonData, markerData}:any) => {
   const [showPopupFrom, setShowPopupFrom] = useState(false)
   const [showPopupTo, setShowPopupTo] = useState(false)
   const [popupInfo, setPopupInfo]:any = useState(false)
+  console.log(geoJsonData)
 
   // if(selectLocationFrom){
   //   map.flyTo({
@@ -89,32 +89,47 @@ const MainMap = ({geoData, geoJsonData, markerData}:any) => {
     ]
 
     // Fitbounds
-  const _onFitBounds = () => {
+  const _onFitBounds = (data:any, jsonData:any) => {
+    console.log({data, jsonData})
     const map: any = mapRef.current
-
-    const geoJsonPoints: any = {
-        type: 'FeatureCollection',
-        features: []
+    if(data) {
+        const geoJsonPoints: any = {
+          type: 'FeatureCollection',
+          features: []
+      }
+      data?.forEach((d: any) => {
+        geoJsonPoints?.features?.push({
+                type: "Feature",
+                geometry: {
+                    type: "Point",
+                    coordinates: [d?.longitude, d?.latitude]
+              }
+            })
+        })
+      const [ minLng, minLat, maxLng, maxLat ]: any = bbox(geoJsonPoints)
+  
+      if(map && map !== null){
+        map?.fitBounds(
+          [
+              [ minLng , minLat ],
+              [ maxLng , maxLat ]
+          ],
+          { 
+              padding: 100, 
+              duration: 1000 
+          }
+        )
+      }
+      return 
     }
-
-    markerData?.forEach((d: any) => {
-      geoJsonPoints?.features?.push({
-              type: "Feature",
-              geometry: {
-                  type: "Point",
-                  coordinates: [d?.longitude, d?.latitude]
-            }
-          })
-      })
-
-
-    const [ minLng, minLat, maxLng, maxLat ]: any = bbox(geoJsonPoints)
-
+    if(jsonData){
+    const [ minLng, minLat, maxLng, maxLat ]: any = bbox(jsonData)
+    console.log([ minLng, minLat, maxLng, maxLat ], jsonData)
     if(map && map !== null){
         map?.fitBounds(
           [
-              [ minLng || geoData?.paths[0]?.bbox[0], minLat || geoData?.paths[0]?.bbox[1] ],
-              [ maxLng || geoData?.paths[0]?.bbox[2], maxLat || geoData?.paths[0]?.bbox[3] ]
+              [ minLng , minLat ],
+              [ maxLng , maxLat ]
           ],
           { 
               padding: 100, 
@@ -122,11 +137,42 @@ const MainMap = ({geoData, geoJsonData, markerData}:any) => {
           }
       )
     }
+    }
+
+    // const geoJsonPoints: any = {
+    //     type: 'FeatureCollection',
+    //     features: []
+    // }
+
+    // data?.forEach((d: any) => {
+    //   geoJsonPoints?.features?.push({
+    //           type: "Feature",
+    //           geometry: {
+    //               type: "Point",
+    //               coordinates: [d?.longitude, d?.latitude]
+    //         }
+    //       })
+    //   })
+
+    // const [ minLng, minLat, maxLng, maxLat ]: any = bbox(jsonData)
+
+    // if(map && map !== null){
+    //     map?.fitBounds(
+    //       [
+    //           [ minLng || geoData?.paths[0]?.bbox[0], minLat || geoData?.paths[0]?.bbox[1] ],
+    //           [ maxLng || geoData?.paths[0]?.bbox[2], maxLat || geoData?.paths[0]?.bbox[3] ]
+    //       ],
+    //       { 
+    //           padding: 100, 
+    //           duration: 1000 
+    //       }
+    //   )
+    // }
   }
   
   useEffect(()=> {
-    _onFitBounds()
-  }, [ geoData, markerData ])
+    _onFitBounds(markerData, geoJsonData)
+  }, [ geoData, markerData, geoJsonData ])
 
   return (
     <div>
