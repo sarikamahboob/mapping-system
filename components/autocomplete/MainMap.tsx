@@ -3,10 +3,16 @@ import { IconLayer, GeoJsonLayer, ScatterplotLayer, TextLayer } from '@deck.gl/l
 import { MapboxOverlay, MapboxOverlayProps } from '@deck.gl/mapbox/typed'
 import { Map, Popup, FullscreenControl, useControl, Marker  } from 'react-map-gl'
 import maplibregl from 'maplibre-gl';
-import { MAP_CONFIG } from '@/app.config';
+import { LOCAL_BASE_URL, MAP_CONFIG } from '@/app.config';
 import * as pmtiles from "pmtiles";
 import { Protocol } from 'pmtiles';
 import { bbox } from '@turf/turf';
+import { setReverseGeocodePlace } from '../redux/commonReducer';
+import { useAppDispatch, useAppSelector } from '../redux/store';
+import { searchPlacesWthGeocode } from '../redux/commonAction';
+import { Typography } from 'antd';
+import { API } from '@/app.config';
+import { useRouter } from 'next/router';
 
 // DeckGL Overlay
 const DeckGLOverlay: any = (props: MapboxOverlayProps & { interleaved?: boolean }) => {
@@ -15,41 +21,33 @@ const DeckGLOverlay: any = (props: MapboxOverlayProps & { interleaved?: boolean 
   return null
 }
 
+// import constants
+const {Paragraph} = Typography
+
 const MainMap = ({geoData, geoJsonData, markerData}:any) => {
   const mapRef: any = useRef()
   const map = mapRef.current
+  const router = useRouter();
+  const dispatch = useAppDispatch()
 
-  const [showPopupFrom, setShowPopupFrom] = useState(false)
-  const [showPopupTo, setShowPopupTo] = useState(false)
+  const lat = router?.query?.latitude
+  const lng = router?.query?.longitude
+  
+  const geoCodeData: any = useAppSelector(state => state?.common?.geoCodeData ?? null)
+  console.log(geoCodeData)
+
   const [popupInfo, setPopupInfo]:any = useState(false)
-  console.log(geoJsonData)
-
-  // if(selectLocationFrom){
-  //   map.flyTo({
-  //     center: [selectLocationFrom?.longitude, selectLocationFrom?.latitude],
-  //     zoom: 16,
-  //     speed: 1.2,
-  //     curve: 1.42,
-  //     easing: (t:any) => t,
-  //   });
-  // }
-  // if(selectLocationTo){
-  //   map.flyTo({
-  //     center: [selectLocationTo?.longitude, selectLocationTo?.latitude],
-  //     zoom: 16,
-  //     speed: 1.2,
-  //     curve: 1.42,
-  //     easing: (t:any) => t,
-  //   });
-  // }
+  const [geoPopupInfo, setGeoPopupInfo]:any = useState(false)
+  const [marker, setMarker]:any = useState(false)
+  const [reverseGeo, setReverseGeo] = useState(false)
 
   const _onMarkerClick = (info: any, e: any) => {
         setPopupInfo(info)
-        console.log(popupInfo)
     }
 
     const _onClosePopup = () => {
         setPopupInfo(null)
+        setGeoPopupInfo(null)
     }
 
     const layers = [
@@ -59,8 +57,8 @@ const MainMap = ({geoData, geoJsonData, markerData}:any) => {
             getColor: d => [ 219, 0, 91],
             getIcon: d => ({
               url: d?.iconUrl,
-              width: 30,
-              height: 30,
+              width: 20,
+              height: 20,
               anchorY: 10,
               zIndex: 1200
             }),
@@ -68,6 +66,8 @@ const MainMap = ({geoData, geoJsonData, markerData}:any) => {
             getSize: d => 5,
             sizeScale: 8,
             pickable: true,
+            lineWidthScale: 20,
+            lineWidthMinPixels: 2,
             onClick: (info, event) => _onMarkerClick(info, event)
         }),
         new GeoJsonLayer({
@@ -90,7 +90,6 @@ const MainMap = ({geoData, geoJsonData, markerData}:any) => {
 
     // Fitbounds
   const _onFitBounds = (data:any, jsonData:any) => {
-    console.log({data, jsonData})
     const map: any = mapRef.current
     if(data) {
         const geoJsonPoints: any = {
@@ -124,7 +123,7 @@ const MainMap = ({geoData, geoJsonData, markerData}:any) => {
     }
     if(jsonData){
     const [ minLng, minLat, maxLng, maxLat ]: any = bbox(jsonData)
-    console.log([ minLng, minLat, maxLng, maxLat ], jsonData)
+
     if(map && map !== null){
         map?.fitBounds(
           [
@@ -170,9 +169,46 @@ const MainMap = ({geoData, geoJsonData, markerData}:any) => {
     // }
   }
   
+  
+  const handleClick = (e:any) => {
+    setReverseGeo(true)
+    setMarker(e?.lngLat)
+    const lat = e?.lngLat?.lat
+    const lng = e?.lngLat?.lng
+    const data = {lat, lng}
+    dispatch(searchPlacesWthGeocode(data))
+  }
+
+  const handleMarkerDrag = (e:any) => {
+      setReverseGeo(true)
+      setMarker(e?.lngLat)
+      const lat = e?.lngLat?.lat
+      const lng = e?.lngLat?.lng
+      const data = {lat, lng}
+      dispatch(searchPlacesWthGeocode(data))  
+  };
+
   useEffect(()=> {
     _onFitBounds(markerData, geoJsonData)
   }, [ geoData, markerData, geoJsonData ])
+
+  useEffect(()=>{
+    dispatch(searchPlacesWthGeocode({lat, lng}))
+  }, [lat, lng])
+
+  useEffect(()=>{
+    if((!reverseGeo) && lat && lng){
+      setMarker({lat, lng})
+      map.flyTo({
+        center: [lng, lat],
+        zoom: 16,
+        speed: 1.2,
+        curve: 1.42,
+        easing: (t:any) => t,
+      });
+    }
+  }, [geoCodeData, lat, lng, reverseGeo])
+
 
   return (
     <div>
@@ -184,7 +220,36 @@ const MainMap = ({geoData, geoJsonData, markerData}:any) => {
         style={{ width: '100%', height: 580 }} 
         mapStyle={ MAP_CONFIG.STYLES[1].uri }
         ref={mapRef}
-        mapLib={maplibregl} >
+        mapLib={maplibregl} 
+        onClick={handleClick}
+        >
+          {
+            marker && 
+            <Marker 
+              longitude={marker?.lng} 
+              latitude={marker?.lat} 
+              anchor="bottom" 
+              draggable={true} 
+              onDrag={handleMarkerDrag} 
+              onClick={ () => setGeoPopupInfo(marker) }
+            >
+              <img src="/parking-logo-green.png" width="30px" />
+            </Marker>
+          }
+          {
+            geoPopupInfo && 
+            <Popup 
+            longitude={Number(geoPopupInfo?.lng) ?? -100}
+            latitude={Number(geoPopupInfo?.lat) ?? 40}
+            anchor="bottom"
+            closeOnClick={false}
+            onClose={ _onClosePopup }
+            >  
+              <Paragraph copyable={{ text: `${ LOCAL_BASE_URL }?longitude=${ geoPopupInfo?.lng }&latitude=${ geoPopupInfo?.lat }` }}>
+                {geoCodeData?.place?.address}
+              </Paragraph>
+            </Popup>
+          }
           {
             popupInfo && 
             <Popup 

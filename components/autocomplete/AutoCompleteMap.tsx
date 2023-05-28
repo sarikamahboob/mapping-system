@@ -20,15 +20,25 @@ const DeckGLOverlay: any = (props: MapboxOverlayProps & { interleaved?: boolean 
 const AutoCompleteMap = ({selectLocationFrom, selectLocationTo, setSelectLocationFrom, setSelectLocationTo}:any) => {
 
   const geoData: any = useAppSelector( state => state?.common?.geoData ?? '')
-  const geoJsonData:any = geoData?.paths?.length > 0 ?  geoData?.paths[0]?.points : null
-  const markerData : any = [selectLocationFrom, selectLocationTo]
-  const markerIcon = useMemo(()=> {
-    return markerData.map ((marker:any)=> ({
-      ...marker,
-      iconUrl: (marker?.pointType === 'From') ? '/marker.png' : '/parking-logo-green.png' 
-    }))
-  }, [markerData])
 
+  const geoJsonData:any = geoData?.paths?.length > 0 ?  geoData?.paths[0]?.points : null
+  let markerIcon;
+  let markerData:any;
+
+  if(!selectLocationFrom && !selectLocationTo){
+    markerIcon = [] 
+  }
+  else{
+    markerData = [selectLocationFrom, selectLocationTo] 
+  }
+  markerIcon = useMemo(()=> {
+    return markerData?.map ((marker:any)=> ({
+    ...marker,
+    iconUrl: (marker?.pointType === 'From') ? '/marker.png' : '/parking-logo-green.png' 
+  }))
+
+  }, [markerData])
+  
 
   return (
     <div>

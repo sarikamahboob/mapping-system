@@ -1,6 +1,6 @@
 import { API } from "@/app.config"
 import axios from "axios"
-import { setGeoData, setIsLoading, setSearchPlaces, setZones } from "./commonReducer"
+import { setGeoCodeData, setGeoData, setIsLoading, setReverseGeocodePlace, setSearchPlaces, setZones } from "./commonReducer"
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import { message } from 'antd'
 
@@ -43,6 +43,20 @@ export const searchPlaces = createAsyncThunk('search/searchPlaces', async (data:
     } catch(err) {
         console.error(err)
         message.error({ content: 'Failed to get data !'})
+
+    } finally {
+        // dispatch( setIsLoading(false) )
+    }
+})
+
+export const searchPlacesWthGeocode = createAsyncThunk('search/searchPlacesWithGeocode', async (data: any, { dispatch }) => {
+    const {lat, lng } = data
+    try {
+        const res = await axios.get(`${ API.REVERSE_GEO }longitude=${ lng }&latitude=${ lat }&district=true&post_code=true&country=true&sub_district=true&union=true&pauroshova=true&location_type=true&division=true&address=true&area=true&bangla=true`)
+        dispatch( setGeoCodeData(res?.data) )
+    } catch(err) {
+        console.error(err)
+        // message.error({ content: 'Failed to get data !'})
 
     } finally {
         // dispatch( setIsLoading(false) )

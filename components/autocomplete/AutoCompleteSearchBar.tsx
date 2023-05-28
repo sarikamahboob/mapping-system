@@ -1,17 +1,20 @@
 import { AutoComplete, Button, Col, Form, Row, Typography } from 'antd'
 import React, { useEffect, useState } from 'react'
-import { handleDistance, searchPlaces } from '../redux/commonAction';
+import { handleDistance, searchPlaces, searchPlacesWthGeocode } from '../redux/commonAction';
 import { useAppDispatch, useAppSelector } from '../redux/store';
 import axios from 'axios';
-import { setGeoData, setIsLoading } from '../redux/commonReducer';
+import { setGeoCodeData, setGeoData, setIsLoading } from '../redux/commonReducer';
 
 // Import Constants
- const { Text } = Typography
+ const { Text, Title } = Typography
 
 const AutoCompleteSearchBar = ({setSelectLocationFrom, setSelectLocationTo, selectLocationFrom, selectLocationTo }:any) => {
 
-  const places:any = useAppSelector(state => state?.common?.search_places ?? [])
   const dispatch = useAppDispatch()
+
+  const places:any = useAppSelector(state => state?.common?.search_places ?? [])
+  const geoCodeData: any = useAppSelector(state => state?.common?.geoCodeData ?? null)
+  
   const [anotherOptionsFrom, setAnotherOptionsFrom]:any = useState('');
   const [anotherOptionsTo, setAnotherOptionsTo]:any = useState('');
   const [options, setOptions] = useState([]);
@@ -55,37 +58,49 @@ const AutoCompleteSearchBar = ({setSelectLocationFrom, setSelectLocationTo, sele
 
 
   return (
-    <Form>
-        <Row style={{flexDirection: 'column'}} gutter={[30, 30]}>
-            <Col style={{display: 'flex', flexDirection: 'column'}}>
-                <Text>From: </Text>
-                <AutoComplete
-                    value={anotherOptionsFrom}
-                    options={options}
-                    style={{ width: '100%'}}
-                    onSelect={onSelectFrom}
-                    onChange={onChange}
-                    onSearch={(text)=> setAnotherOptionsFrom(text)}
-                    placeholder="control mode"
-                />
-            </Col>
-            <Col style={{display: 'flex', flexDirection: 'column'}}>
-                <Text>To: </Text>
-                <AutoComplete
-                    value={anotherOptionsTo}
-                    options={options}
-                    style={{ width: '100%' }}
-                    onSelect={onSelectTo}
-                    onChange={onChange}
-                    onSearch={(text)=> setAnotherOptionsTo(text)}
-                    placeholder="control mode"
-                />
-            </Col>
-        </Row>
-        <div style={{display: 'flex', justifyContent: 'center', marginTop: '30px'}}>
-            <Button type="primary" loading={loading} onClick={()=> handleClick()}> { 'Submit' } </Button>
-        </div>
-    </Form>
+    <>
+      <Form>
+          <Row style={{flexDirection: 'column'}} gutter={[30, 30]}>
+              <Col style={{display: 'flex', flexDirection: 'column'}}>
+                  <Text>From: </Text>
+                  <AutoComplete
+                      value={anotherOptionsFrom}
+                      options={options}
+                      style={{ width: '100%'}}
+                      onSelect={onSelectFrom}
+                      onChange={onChange}
+                      onSearch={(text)=> setAnotherOptionsFrom(text)}
+                      placeholder="control mode"
+                  />
+              </Col>
+              <Col style={{display: 'flex', flexDirection: 'column'}}>
+                  <Text>To: </Text>
+                  <AutoComplete
+                      value={anotherOptionsTo}
+                      options={options}
+                      style={{ width: '100%' }}
+                      onSelect={onSelectTo}
+                      onChange={onChange}
+                      onSearch={(text)=> setAnotherOptionsTo(text)}
+                      placeholder="control mode"
+                  />
+              </Col>
+          </Row>
+          <div style={{display: 'flex', justifyContent: 'center', marginTop: '30px'}}>
+              <Button type="primary" loading={loading} onClick={()=> handleClick()}> { 'Submit' } </Button>
+          </div>
+      </Form>
+      <div style={{marginTop: '50px', }}>
+        <Title style={{fontSize: '30px', color: '#4377ff'}}>Geo Code Info</Title>
+        <Text>Address: {geoCodeData?.place?.address}</Text>
+        <br />
+        <Text>Area: {geoCodeData?.place?.area}</Text>
+        <br />
+        <Text>District: {geoCodeData?.place?.district}</Text>
+        <br />
+        <Text>PostCode: {geoCodeData?.place?.postCode}</Text>
+      </div>
+    </>
   )
 }
 
