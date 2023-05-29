@@ -7,11 +7,16 @@ export const SEARCH_URL = process.env.NEXT_PUBLIC_BASE_URL_SEARCH || ''
 
 export const LOCAL_BASE_URL = 'http://localhost:3000' || ''
 
+export const URL = process.env.NEXT_PUBLIC_URL || ''
+
 // API Routes
 export const API = {
   GET_ZONES: `${ BASE_URL }/api/v1/get-zone`,
   AUTOCOMPLETE: `https://api.bmapsbd.com/search/autocomplete/web?search=`,
-  REVERSE_GEO: `https://barikoi.xyz/v1/api/search/reverse/MjYyMzpHOVkzWFlGNjZG/geocode?`
+  REVERSE_GEO: `https://barikoi.xyz/v1/api/search/reverse/MjYyMzpHOVkzWFlGNjZG/geocode?`,
+  UCODE_SEARCH: `https://api.bmapsbd.com/place`,
+  WKT_URL: `${ BASE_URL }/api/v1/get-trips`,
+  REVERSE_GEO_URL: `${ URL }/reverse/without/auth?`,
 }
 
 // Map Configs

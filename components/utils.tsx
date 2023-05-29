@@ -23,3 +23,10 @@ export const getJsonData = (data: any) => {
   
     return geoJsonData
   }
+  
+export const wktToPoint = (data: any) => {
+  const wkt = require('wkt')
+  const point = wkt.parse(data)
+  const coordinates = point?.coordinates
+  return coordinates
+}

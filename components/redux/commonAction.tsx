@@ -1,8 +1,9 @@
 import { API } from "@/app.config"
 import axios from "axios"
-import { setGeoCodeData, setGeoData, setIsLoading, setReverseGeocodePlace, setSearchPlaces, setZones } from "./commonReducer"
+import { setGeoCodeData, setGeoData, setIsLoading, setReverseGeocodePlace, setSearchPlaces, setUcode, setUcodeData, setWktCoordinates, setZones } from "./commonReducer"
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import { message } from 'antd'
+import { wktToPoint } from "../utils"
 
 // Get Zones
 export function getZones() {
@@ -54,6 +55,58 @@ export const searchPlacesWthGeocode = createAsyncThunk('search/searchPlacesWithG
     try {
         const res = await axios.get(`${ API.REVERSE_GEO }longitude=${ lng }&latitude=${ lat }&district=true&post_code=true&country=true&sub_district=true&union=true&pauroshova=true&location_type=true&division=true&address=true&area=true&bangla=true`)
         dispatch( setGeoCodeData(res?.data) )
+    } catch(err) {
+        console.error(err)
+        // message.error({ content: 'Failed to get data !'})
+
+    } finally {
+        // dispatch( setIsLoading(false) )
+    }
+})
+
+export const searchPlacesWthUcode = createAsyncThunk('search/searchPlacesWithGeocode', async (data: any, { dispatch }) => {
+    const {lat, lng } = data
+    try {
+        const res = await axios.get(`${ API.REVERSE_GEO_URL }latitude=${ lat }&longitude=${ lng }`)
+        console.log(res)
+        dispatch( setUcodeData(res?.data) )
+    } catch(err) {
+        console.error(err)
+        // message.error({ content: 'Failed to get data !'})
+
+    } finally {
+        // dispatch( setIsLoading(false) )
+    }
+})
+
+export const searchPlaceByUcode = createAsyncThunk('search/searchPlaceByUcode', async (data: any, { dispatch }) => {
+
+    try {
+        const res = await axios.get(`https://api.bmapsbd.com/place/${data}`)
+        console.log(res?.data)
+        dispatch( setUcode(res?.data) )
+    } catch(err) {
+        console.error(err)
+        // message.error({ content: 'Failed to get data !'})
+
+    } finally {
+        // dispatch( setIsLoading(false) )
+    }
+})
+
+export const wktToJson = createAsyncThunk('wkt/wktToJson', async (_, { dispatch }) => {
+
+    try {
+        const res = await axios.get(`${ API.WKT_URL }`)
+        const data = res?.data?.data
+        const tranformedData: any = data?.map((item:any, index: number)=> ({
+            ...item,
+            id: item?.id ?? index,
+            coordinates: item?.start_point ? (wktToPoint(item?.start_point)) : '',
+            longitude: item?.start_point ? wktToPoint(item?.start_point)[0] : '',
+            latitude: item?.start_point ? wktToPoint(item?.start_point)[1] : '',
+        }))
+        dispatch( setWktCoordinates(tranformedData) )
     } catch(err) {
         console.error(err)
         // message.error({ content: 'Failed to get data !'})

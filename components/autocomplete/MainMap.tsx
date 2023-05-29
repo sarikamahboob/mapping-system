@@ -3,13 +3,13 @@ import { IconLayer, GeoJsonLayer, ScatterplotLayer, TextLayer } from '@deck.gl/l
 import { MapboxOverlay, MapboxOverlayProps } from '@deck.gl/mapbox/typed'
 import { Map, Popup, FullscreenControl, useControl, Marker  } from 'react-map-gl'
 import maplibregl from 'maplibre-gl';
-import { LOCAL_BASE_URL, MAP_CONFIG } from '@/app.config';
+import { LOCAL_BASE_URL, MAP_CONFIG, URL } from '@/app.config';
 import * as pmtiles from "pmtiles";
 import { Protocol } from 'pmtiles';
 import { bbox } from '@turf/turf';
 import { setReverseGeocodePlace } from '../redux/commonReducer';
 import { useAppDispatch, useAppSelector } from '../redux/store';
-import { searchPlacesWthGeocode } from '../redux/commonAction';
+import { searchPlaceByUcode, searchPlacesWthGeocode, searchPlacesWthUcode, wktToJson } from '../redux/commonAction';
 import { Typography } from 'antd';
 import { API } from '@/app.config';
 import { useRouter } from 'next/router';
@@ -32,44 +32,41 @@ const MainMap = ({geoData, geoJsonData, markerData}:any) => {
 
   const lat = router?.query?.latitude
   const lng = router?.query?.longitude
+  const uCode = router?.query?.place
   
   const geoCodeData: any = useAppSelector(state => state?.common?.geoCodeData ?? null)
-  console.log(geoCodeData)
+  const wktCoordiantesData: any = useAppSelector(state => state?.common?.wktCoordinates ?? null)
+  const uCodeData: any = useAppSelector(state => state?.common?.uCodeData ?? null)
+  const uCodeOnly: any = useAppSelector(state => state?.common?.uCode ?? null)
+
+  const uCodeMain: any = (uCodeData?.length > 0) ? uCodeData[0]?.uCode : ''
+  const uCodeLat: any = (uCodeData?.length > 0) ? uCodeData[0]?.latitude : ''
+  const uCodeLng: any = (uCodeData?.length > 0) ? uCodeData[0]?.longitude : ''
+
 
   const [popupInfo, setPopupInfo]:any = useState(false)
+  const [wktPopupInfo, setWktPopupInfo]:any = useState(false)
   const [geoPopupInfo, setGeoPopupInfo]:any = useState(false)
   const [marker, setMarker]:any = useState(false)
+  const [uCodeMarker, setUcodeMarker]:any = useState(false)
   const [reverseGeo, setReverseGeo] = useState(false)
 
-  const _onMarkerClick = (info: any, e: any) => {
-        setPopupInfo(info)
-    }
 
-    const _onClosePopup = () => {
-        setPopupInfo(null)
-        setGeoPopupInfo(null)
-    }
+  const _onMarkerClick = (info: any, e: any) => {
+    setPopupInfo(info)
+  }
+  const _onMarkerWktClick = (info: any, e: any) => {
+    setPopupInfo(null)
+    setGeoPopupInfo(null)
+    setWktPopupInfo(info)
+   }
+  const _onClosePopup = () => {
+    setPopupInfo(null)
+    setGeoPopupInfo(null)
+    setWktPopupInfo(null)
+  }
 
     const layers = [
-        new IconLayer({
-            id: 'IconLayer',
-            data: markerData,
-            getColor: d => [ 219, 0, 91],
-            getIcon: d => ({
-              url: d?.iconUrl,
-              width: 20,
-              height: 20,
-              anchorY: 10,
-              zIndex: 1200
-            }),
-            getPosition: d => [ +d?.longitude, +d?.latitude ],
-            getSize: d => 5,
-            sizeScale: 8,
-            pickable: true,
-            lineWidthScale: 20,
-            lineWidthMinPixels: 2,
-            onClick: (info, event) => _onMarkerClick(info, event)
-        }),
         new GeoJsonLayer({
             id: 'geojson-layer',
             data: geoJsonData,
@@ -85,7 +82,43 @@ const MainMap = ({geoData, geoJsonData, markerData}:any) => {
             getPointRadius: 100,
             getLineWidth: 1,
             getElevation: 30
-        })
+        }),
+        new ScatterplotLayer({
+          id: 'scatterplot-layer',
+          data: wktCoordiantesData,
+          pickable: true,
+          opacity: 0.8,
+          stroked: true,
+          filled: true,
+          radiusScale: 1000,
+          radiusMinPixels: 1,
+          radiusMaxPixels: 100,
+          lineWidthMinPixels: 1,
+          getPosition: (d:any) => d.coordinates,
+          getRadius: d => Math.sqrt(d.exits),
+          getFillColor: d => [255, 140, 0],
+          getLineColor: d => [0, 0, 0],
+          onClick: (info, event) => _onMarkerWktClick(info, event)
+        }),
+        new IconLayer({
+          id: 'IconLayer',
+          data: markerData,
+          getColor: d => [ 219, 0, 91],
+          getIcon: d => ({
+            url: d?.iconUrl,
+            width: 20,
+            height: 20,
+            anchorY: 10,
+            zIndex: 1200
+          }),
+          getPosition: d => [ +d?.longitude, +d?.latitude ],
+          getSize: d => 5,
+          sizeScale: 8,
+          pickable: true,
+          lineWidthScale: 20,
+          lineWidthMinPixels: 2,
+          onClick: (info, event) => _onMarkerClick(info, event)
+      }),
     ]
 
     // Fitbounds
@@ -177,6 +210,7 @@ const MainMap = ({geoData, geoJsonData, markerData}:any) => {
     const lng = e?.lngLat?.lng
     const data = {lat, lng}
     dispatch(searchPlacesWthGeocode(data))
+    dispatch(searchPlacesWthUcode(data))
   }
 
   const handleMarkerDrag = (e:any) => {
@@ -194,20 +228,44 @@ const MainMap = ({geoData, geoJsonData, markerData}:any) => {
 
   useEffect(()=>{
     dispatch(searchPlacesWthGeocode({lat, lng}))
-  }, [lat, lng])
+    dispatch(searchPlaceByUcode(uCode))
+    console.log(uCode)
+  }, [lat, lng, uCode])
+
+  // useEffect(()=>{
+  //   if((!reverseGeo) && lat && lng){
+  //     setMarker({lat, lng})
+  //     map.flyTo({
+  //       center: [lng, lat],
+  //       zoom: 16,
+  //       speed: 1.2,
+  //       curve: 1.42,
+  //       easing: (t:any) => t,
+  //     });
+  //   }
+  // }, [geoCodeData, lat, lng, reverseGeo])
+
+  const uCodeOnlyLng = uCodeOnly?.longitude ?  uCodeOnly?.longitude : ''
+  const uCodeOnlyLat = uCodeOnly?.latitude ? uCodeOnly?.latitude : ''
+  const latNdLng = {uCodeOnlyLng, uCodeOnlyLat}
+
 
   useEffect(()=>{
-    if((!reverseGeo) && lat && lng){
-      setMarker({lat, lng})
+    if(uCodeOnlyLng && uCodeOnlyLat){
+      setUcodeMarker(latNdLng)
       map.flyTo({
-        center: [lng, lat],
+        center: [uCodeOnlyLng, uCodeOnlyLat],
         zoom: 16,
         speed: 1.2,
         curve: 1.42,
         easing: (t:any) => t,
       });
     }
-  }, [geoCodeData, lat, lng, reverseGeo])
+  }, [uCodeOnlyLng, uCodeOnlyLat])
+
+  useEffect(()=>{
+    dispatch(wktToJson())
+  }, [])
 
 
   return (
@@ -237,6 +295,19 @@ const MainMap = ({geoData, geoJsonData, markerData}:any) => {
             </Marker>
           }
           {
+            uCodeMarker && 
+            <Marker 
+              longitude={uCodeMarker?.uCodeOnlyLng} 
+              latitude={uCodeMarker?.uCodeOnlyLat} 
+              anchor="bottom" 
+              draggable={true} 
+              onDrag={handleMarkerDrag} 
+              onClick={ () => setGeoPopupInfo(marker) }
+            >
+              <img src="/parking-logo-green.png" width="30px" />
+            </Marker>
+          }
+          {
             geoPopupInfo && 
             <Popup 
             longitude={Number(geoPopupInfo?.lng) ?? -100}
@@ -245,9 +316,38 @@ const MainMap = ({geoData, geoJsonData, markerData}:any) => {
             closeOnClick={false}
             onClose={ _onClosePopup }
             >  
-              <Paragraph copyable={{ text: `${ LOCAL_BASE_URL }?longitude=${ geoPopupInfo?.lng }&latitude=${ geoPopupInfo?.lat }` }}>
+              <Paragraph 
+              copyable={{ text: `${ LOCAL_BASE_URL }?longitude=${ geoPopupInfo?.lng }&latitude=${ geoPopupInfo?.lat }` }}
+              >
                 {geoCodeData?.place?.address}
               </Paragraph>
+            </Popup>
+          }
+          {
+            geoPopupInfo && 
+            <Popup 
+            longitude={Number(geoPopupInfo?.lng) ?? -100}
+            latitude={Number(geoPopupInfo?.lat) ?? 40}
+            anchor="bottom"
+            closeOnClick={false}
+            onClose={ _onClosePopup }
+            >  
+              <Paragraph 
+              copyable={{ text: `${ LOCAL_BASE_URL }?place=${uCodeMain}` }}
+              >
+                {geoCodeData?.place?.address}
+              </Paragraph>
+            </Popup>
+          }
+          {
+            wktPopupInfo && 
+            <Popup
+            longitude={Number(wktPopupInfo?.object?.longitude) ?? -100}
+            latitude={Number(wktPopupInfo?.object?.latitude) ?? 40}
+            anchor="bottom"
+            closeOnClick={false}
+            onClose={ _onClosePopup }>
+              {wktPopupInfo?.object?.name}
             </Popup>
           }
           {

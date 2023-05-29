@@ -14,6 +14,7 @@ const AutoCompleteSearchBar = ({setSelectLocationFrom, setSelectLocationTo, sele
 
   const places:any = useAppSelector(state => state?.common?.search_places ?? [])
   const geoCodeData: any = useAppSelector(state => state?.common?.geoCodeData ?? null)
+  const uCodeData: any = useAppSelector(state => state?.common?.uCode ?? null)
   
   const [anotherOptionsFrom, setAnotherOptionsFrom]:any = useState('');
   const [anotherOptionsTo, setAnotherOptionsTo]:any = useState('');
@@ -92,13 +93,13 @@ const AutoCompleteSearchBar = ({setSelectLocationFrom, setSelectLocationTo, sele
       </Form>
       <div style={{marginTop: '50px', }}>
         <Title style={{fontSize: '30px', color: '#4377ff'}}>Geo Code Info</Title>
-        <Text>Address: {geoCodeData?.place?.address}</Text>
+        <Text>Address: {geoCodeData?.place?.address} {uCodeData?.Address}</Text>
         <br />
-        <Text>Area: {geoCodeData?.place?.area}</Text>
+        <Text>Area: {geoCodeData?.place?.area} {uCodeData?.area}</Text>
         <br />
-        <Text>District: {geoCodeData?.place?.district}</Text>
+        <Text>District: {geoCodeData?.place?.district} {uCodeData?.district}</Text>
         <br />
-        <Text>PostCode: {geoCodeData?.place?.postCode}</Text>
+        <Text>PostCode: {geoCodeData?.place?.postCode} {uCodeData?.postCode}</Text>
       </div>
     </>
   )
