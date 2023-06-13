@@ -7,6 +7,10 @@ import { useAppDispatch, useAppSelector } from "../redux/store";
 import maplibregl from "maplibre-gl";
 import { Checkbox, Col, Form, Row } from "antd";
 
+import { Select } from "antd";
+
+const { Option } = Select;
+
 const CustomMap = () => {
   // const dispatch = useAppDispatch();
   // const styleData: any = useAppSelector((state) => state?.common?.styleData);
@@ -132,7 +136,7 @@ const CustomMap = () => {
 
   return (
     <div>
-      <Row>
+      <Row gutter={20}>
         <Col span={16}>
           <Map
             mapLib={maplibregl}
