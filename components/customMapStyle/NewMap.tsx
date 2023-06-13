@@ -2,15 +2,16 @@ import React, { useState, useEffect } from "react";
 import { Map, NavigationControl } from "react-map-gl";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-// import { Row, Col, Form, Checkbox } from "antd";
-import { Row, Col, Form, TreeSelect, Checkbox } from "antd";
-
+import { Row, Col, Form, TreeSelect } from "antd";
 function NewMap(): JSX.Element {
   const [mapStyle, setMapStyle] = useState<any>(null);
   const [selectedBarikoiIds, setSelectedBarikoiIds] = useState<string[]>([]);
   const [selectedOpenMpIds, setSelectedOpenMapIds] = useState<string[]>([]);
   const [barikoiIdOptions, setBarikoiIdOptions] = useState<string[]>([]);
   const [openMapIdOptions, setOpenMapIdOptions] = useState<string[]>([]);
+  const [filteredOpenMapIdOptions, setFilteredOpenMapIdOptions] = useState<
+    string[]
+  >([]);
   const MAP_API_ACCESS_TOKEN = "NDE2NzpVNzkyTE5UMUoy";
   useEffect(() => {
     fetch(
@@ -18,12 +19,15 @@ function NewMap(): JSX.Element {
     )
       .then((response) => response.json())
       .then((data) => {
+        console.log(data);
+        const splicedData = data?.layers?.splice(110, 3);
+        console.log(splicedData);
         // for barikoi data
-        const availableBarikoiData = data.layers.filter(
+        const availableBarikoiData = data?.layers?.filter(
           (layer: any) => layer.id && layer.source === "data"
         );
         // for openmap tiles data
-        const availableOpenMapData = data.layers.filter(
+        const availableOpenMapData = data?.layers?.filter(
           (layer: any) => layer.id && layer.source === "openmaptiles"
         );
         const availableBarikoiIds = availableBarikoiData.map(
@@ -35,9 +39,29 @@ function NewMap(): JSX.Element {
         setBarikoiIdOptions(availableBarikoiIds);
         setOpenMapIdOptions(availableOpenMapIds);
         setMapStyle(data);
+
+        let filteredOptions: string[] = availableOpenMapIds;
+        setSelectedOpenMapIds([]);
+
+        if (selectedBarikoiIds.includes("education")) {
+          if (selectedBarikoiIds.includes("healthcare")) {
+            filteredOptions = ["poi_zsc", "poi_z14hos"];
+          } else {
+            filteredOptions = availableOpenMapIds.filter(
+              (id: string) => id === "poi_zsc"
+            );
+          }
+        } else if (selectedBarikoiIds.includes("healthcare")) {
+          filteredOptions = availableOpenMapIds.filter(
+            (id: string) => id === "poi_z14hos"
+          );
+        }
+
+        setFilteredOpenMapIdOptions(filteredOptions);
       })
       .catch((error) => console.error(error));
-  }, []);
+  }, [selectedBarikoiIds]);
+
   useEffect(() => {
     if (mapStyle) {
       const updatedMapStyle = { ...mapStyle };
@@ -62,8 +86,8 @@ function NewMap(): JSX.Element {
   }, [selectedOpenMpIds, selectedBarikoiIds]);
   return (
     <div className="App">
-      <Row>
-        <Col span={18}>
+      <Row gutter={10}>
+        <Col span={16}>
           {mapStyle && (
             <Map
               mapLib={maplibregl}
@@ -98,7 +122,7 @@ function NewMap(): JSX.Element {
             </Form.Item>
             <Form.Item>
               <TreeSelect
-                treeData={openMapIdOptions.map((id) => ({
+                treeData={filteredOpenMapIdOptions.map((id) => ({
                   title: id,
                   value: id,
                   key: id,
