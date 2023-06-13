@@ -1,15 +1,31 @@
-import Head from 'next/head'
-import Image from 'next/image'
-import { Inter } from 'next/font/google'
-import styles from '@/styles/Home.module.css'
-import DeckGlMap from '@/components/DeckGlMap'
-import { getZones } from '@/components/redux/commonAction'
-import Pmtiles from '@/components/Pmtiles'
-import MainContainer from '@/components/autocomplete/MainContainer'
+import Head from "next/head";
+import Image from "next/image";
+import { Inter } from "next/font/google";
+import styles from "@/styles/Home.module.css";
+import DeckGlMap from "@/components/DeckGlMap";
+import { getZones } from "@/components/redux/commonAction";
+// import Pmtiles from '@/components/Pmtiles'
+import MainContainer from "@/components/autocomplete/MainContainer";
+import PolygonDrawMap from "@/components/Draw/PolygonDrawMap";
+import PolygonMap from "@/components/Draw/PolygonMap";
+import { useEffect } from "react";
+import {
+  activateGPXSocket,
+  deactivateGPXSocket,
+} from "@/components/redux/SocketActions";
+import { useAppDispatch } from "@/components/redux/store";
+import CustomMap from "@/components/customMapStyle/CustomMap";
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ subsets: ["latin"] });
 
 export default function Home() {
+  const dispatch = useAppDispatch();
+  useEffect(() => {
+    dispatch(activateGPXSocket());
+    return () => {
+      dispatch(deactivateGPXSocket());
+    };
+  }, []);
   return (
     <>
       <Head>
@@ -20,7 +36,10 @@ export default function Home() {
       </Head>
       {/* <DeckGlMap/> */}
       {/* <Pmtiles/>    */}
-      <MainContainer/>
+      {/* <MainContainer/> */}
+      {/* <PolygonDrawMap/> */}
+      {/* <PolygonMap/> */}
+      <CustomMap />
     </>
-  )
+  );
 }

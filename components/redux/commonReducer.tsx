@@ -9,7 +9,8 @@ const initialState = {
     geoCodeData: null,
     wktCoordinates: null,
     uCodeData: null,
-    uCode: null
+    uCode: null,
+    styleData: null
 }
 
 const commonSlice = createSlice({
@@ -43,8 +44,11 @@ const commonSlice = createSlice({
     setUcode : (state, action) => {  
       state.uCode = action.payload
     },
+    setStyleData: (state, action) => {
+      state.styleData = action.payload
+    }
   }
 })
 
-export const { setZones, setSearchPlaces, setGeoData, setIsLoading, setReverseGeocodePlace, setGeoCodeData, setWktCoordinates, setUcodeData, setUcode } = commonSlice.actions
+export const { setZones, setSearchPlaces, setGeoData, setIsLoading, setReverseGeocodePlace, setGeoCodeData, setWktCoordinates, setUcodeData, setUcode, setStyleData } = commonSlice.actions
 export default commonSlice.reducer

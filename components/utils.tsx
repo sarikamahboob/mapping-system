@@ -30,3 +30,32 @@ export const wktToPoint = (data: any) => {
   const coordinates = point?.coordinates
   return coordinates
 }
+
+export function sortByDate(data: any, key='created_at') {
+  return data.sort((a: any, b: any) => {
+    const timeA = new Date(a[ key ])
+    const timeB = new Date(b[ key ])
+
+    if (timeA > timeB) {
+      return -1;
+    }
+    if (timeA < timeB) {
+      return 1;
+    }
+    return 0;
+  })
+}
+
+export function updateVehicleData(array1: any, array2: any, key: any) {
+  console.log({array1}, {array2})
+  const array: any = [ ...array1 ]
+  array2.forEach((o: any) => {
+    const index = array.findIndex((a: any) => a[ key ] === o[ key ])
+    if(index >= 0) {
+      array[ index ] = { ...array[ index ] , ...o }
+    }
+  })
+  console.log(array)
+  return array
+}
+

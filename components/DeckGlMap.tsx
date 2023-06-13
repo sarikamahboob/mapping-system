@@ -3,13 +3,14 @@ import { IconLayer, GeoJsonLayer, ScatterplotLayer, TextLayer } from '@deck.gl/l
 import { MapboxOverlay, MapboxOverlayProps } from '@deck.gl/mapbox/typed'
 import { Map, Popup, FullscreenControl, useControl, Marker  } from 'react-map-gl'
 import maplibregl from 'maplibre-gl';
-import { MAP_CONFIG } from '@/app.config';
+import { MAP_API_ACCESS_TOKEN, MAP_CONFIG } from '@/app.config';
 import { getJsonData } from './utils';
 import { useAppDispatch, useAppSelector } from './redux/store';
 import { getZones } from './redux/commonAction';
 import * as pmtiles from "pmtiles";
 import { Protocol } from 'pmtiles';
 import { bbox } from '@turf/turf';
+import axios from 'axios';
 
 // let protocol = new pmtiles.Protocol();
 // maplibregl.addProtocol("pmtiles",protocol.tile);
@@ -35,12 +36,16 @@ const DeckGlMap = () => {
 
    // Redux Data
    const zones: any = useAppSelector( state => state?.common?.zones ?? [])
+   const vehicles: any = useAppSelector(state => state?.socket?.vehicles ?? [])
    const dispatch = useAppDispatch();
   
   // States
   const [ popupInfo, setPopupInfo ]: any = useState(null)
   const [showPopup, setShowPopup] = useState(true);
   const [ geoJsonData, setGeoJsonData ] = useState([])
+
+
+  
 
   // Refs
   const mapRef = useRef(null)
@@ -186,6 +191,8 @@ const DeckGlMap = () => {
       setPopupInfo(null)
   }
 
+  
+
   useEffect(()=>{
     dispatch(getZones())
   }, [])
@@ -195,6 +202,7 @@ const DeckGlMap = () => {
       _onFitBounds()
   }, [ zones ])
 
+
   return (
     <div>
         <Map initialViewState={{
@@ -202,11 +210,12 @@ const DeckGlMap = () => {
         latitude: 23.719800220780733,
         zoom: 12
         }}
-        style={{width: '100%', height: 700}} 
-        mapStyle={ MAP_CONFIG.STYLES[1].uri }
+        style={{width: '100%', height: 700}}
+        mapStyle={ `https://map.barikoi.com/styles/osm-liberty/style.json?key=${MAP_API_ACCESS_TOKEN}` } 
+        // mapStyle={ MAP_CONFIG.STYLES[1].uri }
         ref={mapRef}
         mapLib={maplibregl} >
-          {
+          {/* {
             data.map((i:any)=>(
               <Marker longitude={i?.position[0]} latitude={i?.position[1]} anchor="bottom" onClick={()=> setShowPopup(true)}>
                 <img src="marker.png" alt="" width="20px"/>
@@ -241,9 +250,16 @@ const DeckGlMap = () => {
                 <span style={{ fontWeight: 600 }}>{popupInfo?.object?.zone_name}</span>
             </Popup>
             }
+            {
+              vehicles && vehicles.map((item:any)=> (
+                <Marker longitude={item?.longitude} latitude={item?.latitude} anchor="bottom" onClick={()=> setShowPopup(true)}>
+                  <img src="marker.png" alt="" width="20px"/>
+                </Marker>
+              ))
+            }
           <DeckGLOverlay layers={[...layers]} 
           // getTooltip={({object}:any) => object && `${object.name}\n${object.address}`} 
-          />
+          /> */}
         </Map>
     </div>
   )

@@ -5,6 +5,12 @@ export const MAP_API_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAP_API_ACCESS_TOKEN
 
 export const SEARCH_URL = process.env.NEXT_PUBLIC_BASE_URL_SEARCH || ''
 
+export const PUSHER_APP_KEY = process.env.NEXT_PUBLIC_PUSHER_APP_KEY || ''
+
+export const PUSHER_APP_SECRET = process.env.NEXT_PUBLIC_PUSHER_APP_SECRET || ''
+
+export const WS_HOST = process.env.NEXT_PUBLIC_WS_HOST || ''
+
 export const LOCAL_BASE_URL = 'http://localhost:3000' || ''
 
 export const URL = process.env.NEXT_PUBLIC_URL || ''
@@ -38,3 +44,16 @@ export const MAP_CONFIG = {
     ]
   }
 
+
+
+  export const GPX_SOCKET = {
+    PUSHER_APP_KEY: 'mykey',
+    PUSHER_APP_SECRET: '63a40b2bc45123cff47e',
+    PUSHER_APP_CLUSTER: 'ap2',
+    PUSHER_APP_ID: 1126684,
+    WS_HOST: 'backend.barikoi.com',
+    WS_PORT: 6001,
+    CHANNEL: 'private-garbage_man_47477',
+    EVENT_GML_GPX: 'garbage_man_default_channel',
+    AUTH_ENDPOINT: 'https://backend.barikoi.com:8888/api/broadcasting/auth',
+  }

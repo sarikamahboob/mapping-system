@@ -3,7 +3,7 @@ import { IconLayer, GeoJsonLayer, ScatterplotLayer, TextLayer } from '@deck.gl/l
 import { MapboxOverlay, MapboxOverlayProps } from '@deck.gl/mapbox/typed'
 import { Map, Popup, FullscreenControl, useControl, Marker  } from 'react-map-gl'
 import maplibregl from 'maplibre-gl';
-import { LOCAL_BASE_URL, MAP_CONFIG, URL } from '@/app.config';
+import { LOCAL_BASE_URL, MAP_API_ACCESS_TOKEN, MAP_CONFIG, URL } from '@/app.config';
 import * as pmtiles from "pmtiles";
 import { Protocol } from 'pmtiles';
 import { bbox } from '@turf/turf';
@@ -13,6 +13,7 @@ import { searchPlaceByUcode, searchPlacesWthGeocode, searchPlacesWthUcode, wktTo
 import { Typography } from 'antd';
 import { API } from '@/app.config';
 import { useRouter } from 'next/router';
+import axios from 'axios';
 
 // DeckGL Overlay
 const DeckGLOverlay: any = (props: MapboxOverlayProps & { interleaved?: boolean }) => {
@@ -268,6 +269,10 @@ const MainMap = ({geoData, geoJsonData, markerData}:any) => {
   }, [])
 
 
+
+  
+
+
   return (
     <div>
       <Map initialViewState={{
@@ -276,10 +281,11 @@ const MainMap = ({geoData, geoJsonData, markerData}:any) => {
         zoom: 12
         }}
         style={{ width: '100%', height: 580 }} 
-        mapStyle={ MAP_CONFIG.STYLES[1].uri }
+        // mapStyle={ MAP_CONFIG.STYLES[1].uri }
         ref={mapRef}
         mapLib={maplibregl} 
         onClick={handleClick}
+        mapStyle={ `data.json` }
         >
           {
             marker && 
