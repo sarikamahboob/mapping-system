@@ -22,7 +22,8 @@
 //     fetchData();
 //   }, [])
 
-{/* <Map
+{
+  /* <Map
           mapLib={maplibregl}
           initialViewState={{
             longitude: 90.39017821904588,
@@ -34,4 +35,22 @@
           // mapStyle={`data.json` }
         >
           <NavigationControl position="top-left" />
-        </Map> */}
+        </Map> */
+}
+
+// const availableData = data.layers.filter(
+//   (layer: any) =>
+//     (layer.id
+//       &&
+//       (layer.id === "shop" ||
+//         layer.id === "clinic" ||
+//         layer.id === "recreation" ||
+//         layer.id === "healthcare" ||
+//         layer.id === "barikoi_poi" ||
+//         layer.id === "landuse_hospital" ||
+//         layer.id === "education" ||
+//         layer.id.includes("poi") ||
+//         layer.id === "landuse_school")
+//         ) ||
+//     layer.id && layer.source === "data"
+// );

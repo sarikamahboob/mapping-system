@@ -8,13 +8,14 @@ import maplibregl from "maplibre-gl";
 import { Checkbox, Col, Form, Row } from "antd";
 
 const CustomMap = () => {
-  const dispatch = useAppDispatch();
-
-  const styleData: any = useAppSelector((state) => state?.common?.styleData);
+  // const dispatch = useAppDispatch();
+  // const styleData: any = useAppSelector((state) => state?.common?.styleData);
+  // dispatch(setStyleData(data))
 
   const [mapStyle, setMapStyle]: any = useState(null);
   const [selectedIds, setSelectedIds]: any = useState([]);
-  const [dataIds, setDataIds] = useState([]);
+  const [barikoiDataIds, setBarikoiDataIds] = useState([]);
+  const [openMapDataIds, setOpenMapDataIds] = useState([]);
 
   useEffect((): any => {
     const fetchData = async () => {
@@ -24,28 +25,24 @@ const CustomMap = () => {
           `https://map.barikoi.com/styles/osm-liberty/style.json?key=NDE2NzpVNzkyTE5UMUoy`
         );
         const data = response.data;
-        const poiIds = data.layers.filter((layer: any) =>
-          layer.id.includes("poi_")
+
+        // Aavailable datas from json file
+        const availableDataForBarikoi = data.layers.filter(
+          (layer: any) => layer.id && layer.source === "data"
         );
-        console.log(poiIds);
-        const availableData = data.layers.filter(
-          (layer: any) =>
-            layer.id &&
-            (layer.id === "shop" ||
-              layer.id === "clinic" ||
-              layer.id === "recreation" ||
-              layer.id === "healthcare" ||
-              layer.id === "barikoi_poi" ||
-              layer.id === "landuse_hospital" ||
-              layer.id === "education" ||
-              layer.id.includes("poi") ||
-              layer.id === "landuse_school")
+        const availableDataForOpenMapTiles = data.layers.filter(
+          (layer: any) => layer.id && layer.source === "openmaptiles"
         );
 
-        const availableIds = availableData.map((layer: any) => layer.id);
-        setDataIds(availableIds);
+        const availableBarikoiIds = availableDataForBarikoi.map(
+          (layer: any) => layer.id
+        );
+        const availableOpenMapIds = availableDataForOpenMapTiles.map(
+          (layer: any) => layer.id
+        );
+        setBarikoiDataIds(availableBarikoiIds);
+        setOpenMapDataIds(availableOpenMapIds);
         setMapStyle(data);
-        // dispatch(setStyleData(data))
       } catch (error) {
         console.error(error);
       }
@@ -118,23 +115,14 @@ const CustomMap = () => {
       } else {
         updatedIds = prevIds.filter((id: any) => id !== value);
         if (value === "education") {
-          const poiZ13Layer = mapStyle.layers.find(
-            (layer: any) => layer.id === "poi_z13"
+          const poiLayers = mapStyle.layers.find(
+            (layer: any) =>
+              layer.id === "poi_z13" &&
+              layer.id === "poi_z15" &&
+              layer.id === "poi_z16"
           );
-          const poiZ15Layer = mapStyle.layers.find(
-            (layer: any) => layer.id === "poi_z15"
-          );
-          const poiZ16Layer = mapStyle.layers.find(
-            (layer: any) => layer.id === "poi_z16"
-          );
-          if (poiZ13Layer) {
-            poiZ13Layer.minzoom = 15;
-          }
-          if (poiZ15Layer) {
-            poiZ15Layer.minzoom = 15;
-          }
-          if (poiZ16Layer) {
-            poiZ16Layer.minzoom = 15;
+          if (poiLayers) {
+            poiLayers.minzoom = 15;
           }
         }
       }
@@ -164,8 +152,22 @@ const CustomMap = () => {
         </Col>
         <Col span={6}>
           <Form>
-            <Form.Item label="Select">
-              {dataIds.map((id, index) => (
+            <Form.Item label="Barikoi Data:" labelCol={{ span: 24 }}>
+              {barikoiDataIds.map((id, index) => (
+                <Checkbox
+                  key={id}
+                  value={id}
+                  onChange={handleCheckboxChange}
+                  checked={selectedIds.includes(id)}
+                >
+                  {id}
+                </Checkbox>
+              ))}
+            </Form.Item>
+          </Form>
+          <Form>
+            <Form.Item label="Openmaptiles Data:" labelCol={{ span: 24 }}>
+              {openMapDataIds.map((id, index) => (
                 <Checkbox
                   key={id}
                   value={id}
