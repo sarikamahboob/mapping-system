@@ -16,6 +16,7 @@ import {
 import { useAppDispatch } from "@/components/redux/store";
 import CustomMap from "@/components/customMapStyle/CustomMap";
 import NewMap from "@/components/customMapStyle/NewMap";
+import NewMap2 from "@/components/customMapStyle/NewMap2";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -42,6 +43,7 @@ export default function Home() {
       {/* <PolygonMap/> */}
       {/* <CustomMap /> */}
       <NewMap />
+      {/* <NewMap2 /> */}
     </>
   );
 }
